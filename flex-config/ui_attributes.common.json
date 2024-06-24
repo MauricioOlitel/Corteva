@@ -415,12 +415,12 @@
         "enabled": true
       },
       "branding": {
-        "enabled": false,
-        "custom_logo_url": "",
-        "use_custom_colors": false,
+        "enabled": true,
+        "custom_logo_url": "{{serverless.url}}/logov3.png",
+        "use_custom_colors": true,
         "custom_colors": {
-          "main_header_background": "rgb(6, 3, 58)",
-          "side_nav_background": "rgb(255, 255, 255)",
+          "main_header_background": "rgb(0, 114, 206)",
+          "side_nav_background": "rgb(230, 232, 234)",
           "side_nav_border": "rgb(202, 205, 216)",
           "side_nav_icon": "rgb(18, 28, 45)",
           "side_nav_selected_icon": "rgb(2, 99, 224)",
