@@ -16,7 +16,7 @@ export const jsClientHook = function playAudioOnReservationCreated(
   const { attributes } = task;
   const { direction } = attributes;
 
-  if (direction !== 'inbound') {
+  if (direction !== 'inbound'|| task.taskChannelUniqueName !== 'voice') {
     return;
   }
 
