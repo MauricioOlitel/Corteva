@@ -5,7 +5,7 @@ import { TeamActivityCounts, TeamTaskCounts } from '../types';
 const _manager = Manager.getInstance();
 const workerActivities = _manager.store.getState().flex?.worker?.activities || new Map();
 
-const STATUS_AVAILABLE = 'Available';
+const STATUS_AVAILABLE = 'Disponivel';
 const TASK_CHANNEL_VOICE = 'voice';
 
 export function getAgentStatusCounts(workers: any[] = [], teams: string[] = []) {
