@@ -128,7 +128,7 @@ const AgentTeamActivityTile = () => {
             <Tr key="Other">
               <Td element="COMPACT_TABLE">
                 <TmLabel>
-                  <Template source={templates[StringTemplates.TeamsViewSummaryOther]} />
+                  <TmLabel>Não atribuído</TmLabel>
                 </TmLabel>
               </Td>
               <Td element="COMPACT_TABLE" textAlign="center">
