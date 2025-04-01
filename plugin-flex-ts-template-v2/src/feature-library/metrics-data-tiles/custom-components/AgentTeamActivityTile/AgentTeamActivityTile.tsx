@@ -26,7 +26,10 @@ const AgentTeamActivityTile = () => {
 
   return (
     <TeamTileWrapper className="Twilio-AggregatedDataTile">
-      <Box overflowY="auto" maxHeight="240px">
+      <Box
+        // Sobrescrevendo as propriedades para evitar o maxHeight e a barra de rolagem
+        style={{ maxHeight: 'none', overflowY: 'visible' }}
+      >
         <Table variant="borderless">
           <THead stickyHeader top={0} element="STICKY_HEADER">
             <Tr key="headerRow">
@@ -83,18 +86,18 @@ const AgentTeamActivityTile = () => {
                 </TmHeading>
               </Td>
               <Td element="COMPACT_TABLE" textAlign="center">
-                <TmHeading>{workerActivityCounts.All.totalAgentCount} </TmHeading>
+                <TmHeading>{workerActivityCounts.All.totalAgentCount}</TmHeading>
               </Td>
               <Td element="COMPACT_TABLE_BG30" textAlign="center">
-                <TmHeading>{workerActivityCounts.All.activities.Idle} </TmHeading>
+                <TmHeading>{workerActivityCounts.All.activities.Idle}</TmHeading>
               </Td>
               <Td element="COMPACT_TABLE_BG20" textAlign="center">
-                <TmHeading>{workerActivityCounts.All.activities.Busy} </TmHeading>
+                <TmHeading>{workerActivityCounts.All.activities.Busy}</TmHeading>
               </Td>
               {activityNames.map((activity) => {
                 return (
                   <Td element="COMPACT_TABLE" textAlign="center" key={activity}>
-                    <TmHeading> {workerActivityCounts.All.activities[activity] || 0} </TmHeading>
+                    <TmHeading>{workerActivityCounts.All.activities[activity] || 0}</TmHeading>
                   </Td>
                 );
               })}
@@ -104,16 +107,16 @@ const AgentTeamActivityTile = () => {
               return (
                 <Tr key={team}>
                   <Td element="COMPACT_TABLE">
-                    <TmLabel> {team} </TmLabel>
+                    <TmLabel>{team}</TmLabel>
                   </Td>
                   <Td element="COMPACT_TABLE" textAlign="center">
-                    <TmLabel>{agentCount} </TmLabel>
+                    <TmLabel>{agentCount}</TmLabel>
                   </Td>
                   <Td element="COMPACT_TABLE_BG30" textAlign="center">
-                    <TmLabel>{workerActivityCounts[team].activities.Idle} </TmLabel>
+                    <TmLabel>{workerActivityCounts[team].activities.Idle}</TmLabel>
                   </Td>
                   <Td element="COMPACT_TABLE_BG20" textAlign="center">
-                    <TmLabel>{workerActivityCounts[team].activities.Busy} </TmLabel>
+                    <TmLabel>{workerActivityCounts[team].activities.Busy}</TmLabel>
                   </Td>
                   {activityNames.map((activity) => {
                     return (
@@ -132,18 +135,18 @@ const AgentTeamActivityTile = () => {
                 </TmLabel>
               </Td>
               <Td element="COMPACT_TABLE" textAlign="center">
-                <TmLabel>{workerActivityCounts.Other.totalAgentCount} </TmLabel>
+                <TmLabel>{workerActivityCounts.Other.totalAgentCount}</TmLabel>
               </Td>
               <Td element="COMPACT_TABLE_BG30" textAlign="center">
-                <TmLabel>{workerActivityCounts.Other.activities.Idle} </TmLabel>
+                <TmLabel>{workerActivityCounts.Other.activities.Idle}</TmLabel>
               </Td>
               <Td element="COMPACT_TABLE_BG20" textAlign="center">
-                <TmLabel>{workerActivityCounts.Other.activities.Busy} </TmLabel>
+                <TmLabel>{workerActivityCounts.Other.activities.Busy}</TmLabel>
               </Td>
               {activityNames.map((activity) => {
                 return (
                   <Td element="COMPACT_TABLE" textAlign="center" key={activity}>
-                    <TmLabel> {workerActivityCounts.Other.activities[activity] || 0} </TmLabel>
+                    <TmLabel>{workerActivityCounts.Other.activities[activity] || 0}</TmLabel>
                   </Td>
                 );
               })}
