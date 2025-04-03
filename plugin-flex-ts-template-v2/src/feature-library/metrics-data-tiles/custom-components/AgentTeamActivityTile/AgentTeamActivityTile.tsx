@@ -26,10 +26,7 @@ const AgentTeamActivityTile = () => {
 
   return (
     <TeamTileWrapper className="Twilio-AggregatedDataTile">
-      <Box
-        // Sobrescrevendo as propriedades para evitar o maxHeight e a barra de rolagem
-        style={{ maxHeight: 'none', overflowY: 'visible' }}
-      >
+      <Box overflowY="auto" maxHeight="440px">
         <Table variant="borderless">
           <THead stickyHeader top={0} element="STICKY_HEADER">
             <Tr key="headerRow">
