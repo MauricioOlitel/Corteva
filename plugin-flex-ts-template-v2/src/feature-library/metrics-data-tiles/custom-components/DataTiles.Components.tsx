@@ -124,7 +124,7 @@ export const Chart = styled('div')`
 `;
 
 export const TeamTileWrapper = styled('div')<OwnProps>`
-  max-height: 220px;
+  max-height: 320px;
   display: flex;
   flex-direction: column;
   padding: ${({ theme }) => theme.tokens.spacings.space40};
