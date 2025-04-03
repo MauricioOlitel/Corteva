@@ -5,7 +5,7 @@ export interface ThemeOnlyProps {
 }
 
 export const TeamsViewTilesContainer = styled('div')<ThemeOnlyProps>`
-  max-height: 220px;
+  max-height: 320px;
   display: flex;
   width: 100%;
   margin-top: ${({ theme }) => theme.tokens.spacings.space40};
