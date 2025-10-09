@@ -2,18 +2,36 @@ import { Actions, Manager, Notifications } from "@twilio/flex-ui";
 const manager = Manager.getInstance();
 
 const resolveServerlessDomain = () => {
-  let dom = process?.env?.FLEX_APP_TWILIO_SERVERLESS_DOMAIN;
-  if (!dom || dom === 'undefined') {
-    if (typeof window !== 'undefined' && window.__SERVERLESS_DOMAIN__) {
-      dom = window.__SERVERLESS_DOMAIN__;
-    }
+  const envDomain = typeof process !== 'undefined' && process.env
+    ? process.env.FLEX_APP_TWILIO_SERVERLESS_DOMAIN
+    : undefined;
+  const windowDomain = typeof window !== 'undefined' ? window.__SERVERLESS_DOMAIN__ : undefined;
+  let dom = envDomain && envDomain !== 'undefined' ? envDomain : undefined;
+
+  if (!dom && windowDomain && windowDomain !== 'undefined') {
+    dom = windowDomain;
   }
-  if (!dom || dom === 'undefined') {
-    dom = 'https://outbound-messaging-6982-dev.twil.io';
+
+  if (!dom) {
+    console.error('[sendOutboundMessage] Nenhum domínio serverless configurado. Defina FLEX_APP_TWILIO_SERVERLESS_DOMAIN.');
+    throw new Error('FLEX_APP_TWILIO_SERVERLESS_DOMAIN não configurado');
   }
+
   dom = dom.trim();
   if (!/^https?:\/\//i.test(dom)) dom = 'https://' + dom.replace(/^\/*/, '');
-  return dom.replace(/\/$/, '');
+  dom = dom.replace(/\/$/, '');
+
+  try {
+    console.debug('[sendOutboundMessage] resolveServerlessDomain', {
+      envDomain,
+      windowDomain,
+      finalDomain: dom,
+    });
+  } catch (e) {
+    // ignore logging errors
+  }
+
+  return dom;
 };
 
 const sendOutboundMessage = async (sendOutboundParams) => {
@@ -38,7 +56,14 @@ const sendOutboundMessage = async (sendOutboundParams) => {
   try {
   const domain = resolveServerlessDomain();
   const url = `${domain}/sendOutboundMessage`;
-  console.debug('[sendOutboundMessage] URL:', url);
+  const token = body.Token || '';
+  const tokenPreview = token ? `${token.substring(0, 6)}...${token.substring(token.length - 4)}` : 'n/a';
+  console.debug('[sendOutboundMessage] Request info', {
+    url,
+    openChat: !!OpenChatFlag,
+    to: To,
+    tokenPreview,
+  });
   const resp = await fetch(url, options);
     const data = await resp.json();
 

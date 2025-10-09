@@ -4,22 +4,38 @@ const manager = Manager.getInstance();
 
 // Shared resolver (duplicated also in sendOutboundMessage; can be refactored later)
 const resolveServerlessDomain = () => {
-  let dom = process?.env?.FLEX_APP_TWILIO_SERVERLESS_DOMAIN;
-  // Guard against literal 'undefined' string produced at build when env missing
-  if (!dom || dom === 'undefined') {
-    if (typeof window !== 'undefined' && window.__SERVERLESS_DOMAIN__) {
-      dom = window.__SERVERLESS_DOMAIN__;
-    }
+  const envDomain = typeof process !== 'undefined' && process.env
+    ? process.env.FLEX_APP_TWILIO_SERVERLESS_DOMAIN
+    : undefined;
+  const windowDomain = typeof window !== 'undefined' ? window.__SERVERLESS_DOMAIN__ : undefined;
+  let dom = envDomain && envDomain !== 'undefined' ? envDomain : undefined;
+
+  if (!dom && windowDomain && windowDomain !== 'undefined') {
+    dom = windowDomain;
   }
-  // Hard fallback (DEV) – dominio fornecido
-  if (!dom || dom === 'undefined') {
-    dom = 'https://outbound-messaging-6982-dev.twil.io';
+
+  if (!dom) {
+    console.error('[fetchContentTemplates] Nenhum domínio serverless configurado. Defina FLEX_APP_TWILIO_SERVERLESS_DOMAIN.');
+    throw new Error('FLEX_APP_TWILIO_SERVERLESS_DOMAIN não configurado');
   }
+
   dom = dom.trim();
   if (!/^https?:\/\//i.test(dom)) {
     dom = 'https://' + dom.replace(/^\/*/, '');
   }
-  return dom.replace(/\/$/, '');
+  dom = dom.replace(/\/$/, '');
+
+  try {
+    console.debug('[fetchContentTemplates] resolveServerlessDomain', {
+      envDomain,
+      windowDomain,
+      finalDomain: dom,
+    });
+  } catch (e) {
+    // ignore logging errors (e.g., unavailable console in certain envs)
+  }
+
+  return dom;
 };
 
 export const fetchContentTemplates = async () => {
@@ -28,9 +44,34 @@ export const fetchContentTemplates = async () => {
     console.warn('[fetchContentTemplates] Sem token SSO, abortando.');
     return [];
   }
+
+  let tokenClaims;
+  try {
+    const [, payload] = token.split('.') || [];
+    if (payload && typeof atob === 'function') {
+      tokenClaims = JSON.parse(atob(payload));
+    }
+  } catch (err) {
+    console.warn('[fetchContentTemplates] Falha ao decodificar token JWT', err);
+  }
+
   const domain = resolveServerlessDomain();
   const url = `${domain}/getContentTemplates`;
-  console.debug('[fetchContentTemplates] Fetch URL:', url);
+  const tokenPreview = `${token.substring(0, 6)}...${token.substring(token.length - 4)}`;
+  console.debug('[fetchContentTemplates] Fetch URL & token preview:', {
+    url,
+    tokenPreview,
+    tokenClaims: tokenClaims
+      ? {
+          iss: tokenClaims.iss,
+          sub: tokenClaims.sub,
+          identity: tokenClaims.grants?.identity,
+          workerSid: tokenClaims.grants?.worker_sid,
+          accountSid: tokenClaims.grants?.flex?.service_configuration?.account_sid,
+          exp: tokenClaims.exp,
+        }
+      : 'unavailable',
+  });
 
   const options = {
     method: 'POST',
@@ -52,3 +93,15 @@ export const fetchContentTemplates = async () => {
     return [];
   }
 };
+
+try {
+  if (typeof window !== 'undefined') {
+    Object.defineProperty(window, '__fetchContentTemplatesDebug', {
+      value: fetchContentTemplates,
+      writable: false,
+      configurable: true,
+    });
+  }
+} catch (e) {
+  // ignore errors ao expor helper global
+}
