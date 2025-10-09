@@ -3,10 +3,23 @@ import { Manager } from '@twilio/flex-ui';
 const manager = Manager.getInstance();
 
 const resolveDomain = () => {
-  let dom = process?.env?.FLEX_APP_TWILIO_SERVERLESS_DOMAIN;
-  if (!dom || dom === 'undefined') dom = window.__SERVERLESS_DOMAIN__ || '';
-  if (!dom) dom = 'https://outbound-messaging-6982-dev.twil.io';
-  if (!/^https?:\/\//i.test(dom)) dom = 'https://' + dom;
+  const envDomain = typeof process !== 'undefined' && process.env
+    ? process.env.FLEX_APP_TWILIO_SERVERLESS_DOMAIN
+    : undefined;
+  const windowDomain = typeof window !== 'undefined' ? window.__SERVERLESS_DOMAIN__ : undefined;
+  let dom = envDomain && envDomain !== 'undefined' ? envDomain : undefined;
+
+  if (!dom && windowDomain && windowDomain !== 'undefined') {
+    dom = windowDomain;
+  }
+
+  if (!dom) {
+    console.error('[fetchQueuesFallback] Nenhum domínio serverless configurado. Defina FLEX_APP_TWILIO_SERVERLESS_DOMAIN.');
+    throw new Error('FLEX_APP_TWILIO_SERVERLESS_DOMAIN não configurado');
+  }
+
+  dom = dom.trim();
+  if (!/^https?:\/\//i.test(dom)) dom = 'https://' + dom.replace(/^\/*/, '');
   return dom.replace(/\/$/, '');
 };
 

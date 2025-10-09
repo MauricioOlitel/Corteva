@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { SidePanel, Manager, useFlexSelector } from "@twilio/flex-ui";
 import {
   Label,
@@ -20,6 +20,7 @@ interface SendWhatsappSidePanelProps {
   phoneNumber: string;
   templates: any[];
   onClose: () => void;
+  queueFilterSids?: string[];
 }
 
 export const SendWhatsappSidePanel: React.FC<SendWhatsappSidePanelProps> = ({
@@ -27,6 +28,7 @@ export const SendWhatsappSidePanel: React.FC<SendWhatsappSidePanelProps> = ({
   templates,
   phoneNumber,
   onClose,
+  queueFilterSids = [],
 }) => {
   const [toNumber, setToNumber] = useState(phoneNumber);
   const [contentTemplateSid, setContentTemplateSid] = useState("");
@@ -44,13 +46,63 @@ export const SendWhatsappSidePanel: React.FC<SendWhatsappSidePanelProps> = ({
     return Object.values(ql);
   }) as any[];
 
+  const queueFilterValues = useMemo(() => {
+    const normalized = new Set<string>();
+    queueFilterSids.forEach((value: string) => {
+      if (!value) return;
+      const trimmed = String(value).trim();
+      if (trimmed) {
+        normalized.add(trimmed.toLowerCase());
+      }
+    });
+    return normalized;
+  }, [queueFilterSids]);
+
+  const applyQueueFilter = useCallback(
+    (queues: any[] = []) => {
+      return queues.filter((queue) => {
+        const candidates = [
+          typeof queue.sid === 'string' ? queue.sid : undefined,
+          typeof queue.friendlyName === 'string' ? queue.friendlyName : undefined,
+          typeof queue.queueName === 'string' ? queue.queueName : undefined,
+        ]
+          .filter(Boolean)
+          .map((candidate) => candidate!.toString().toLowerCase());
+        if (candidates.some((candidate) => candidate.includes('voice'))) {
+          return false;
+        }
+        if (!queueFilterValues.size) {
+          return true;
+        }
+        return candidates.some((candidate) => {
+          for (const filterValue of queueFilterValues) {
+            if (candidate.includes(filterValue)) {
+              return true;
+            }
+          }
+          return false;
+        });
+      });
+    },
+    [queueFilterValues],
+  );
+
+  const filteredRealtimeQueues = useMemo(() => applyQueueFilter(queueOptions), [applyQueueFilter, queueOptions]);
+  const filteredFallbackQueues = useMemo(() => applyQueueFilter(fallbackQueues), [applyQueueFilter, fallbackQueues]);
+  const filtersActive = queueFilterValues.size > 0;
+
   // Log changes nas filas para depuração
   useEffect(() => {
-    console.debug('[SendWhatsappSidePanel] queueOptions update size=', queueOptions.length);
-  }, [queueOptions]);
+    console.debug('[SendWhatsappSidePanel] queueOptions update', {
+      total: queueOptions.length,
+      filtered: filteredRealtimeQueues.length,
+      filtersActive,
+      filterValues: Array.from(queueFilterValues),
+    });
+  }, [queueOptions, filteredRealtimeQueues.length, filtersActive, queueFilterValues]);
 
   const queuesLoading = queueOptions.length === 0 && Date.now() - queueFirstLoadTs < 8000; // até 8s consideramos carregando
-  const queuesEmptyAfterLoad = queueOptions.length === 0 && !queuesLoading;
+  const queuesEmptyAfterLoad = (queueOptions.length === 0 || (filtersActive && filteredRealtimeQueues.length === 0)) && !queuesLoading;
 
   const handleRefreshQueues = () => {
     // Não há API direta aqui; rely on Flex internals -> forçar um noop para provocar re-render
@@ -59,7 +111,14 @@ export const SendWhatsappSidePanel: React.FC<SendWhatsappSidePanelProps> = ({
     if (queueOptions.length === 0) {
       fetchQueuesFallback().then(q => {
         setFallbackQueues(q);
-        console.debug('[SendWhatsappSidePanel] Fallback queues loaded count=', q.length);
+        const filtered = applyQueueFilter(q);
+        console.debug('[SendWhatsappSidePanel] Fallback queues loaded', {
+          rawCount: q.length,
+          filteredCount: filtered.length,
+        });
+        if (!queueSid && filtered.length > 0) {
+          setQueueSid(filtered[0].sid);
+        }
       });
     }
   };
@@ -68,8 +127,8 @@ export const SendWhatsappSidePanel: React.FC<SendWhatsappSidePanelProps> = ({
   useEffect(() => {
     if (isOpen) {
       setToNumber(phoneNumber);
-  setContentTemplateSid("");
-  setQueueSid("");
+      setContentTemplateSid("");
+      setQueueSid("");
       setFallbackQueues([]);
       setFallbackTriggered(false);
       setFallbackLoading(false);
@@ -87,16 +146,29 @@ export const SendWhatsappSidePanel: React.FC<SendWhatsappSidePanelProps> = ({
       setFallbackLoading(true);
       fetchQueuesFallback().then(q => {
         setFallbackQueues(q);
+        const filtered = applyQueueFilter(q);
         setFallbackLoading(false);
-        console.debug('[SendWhatsappSidePanel] Auto fallback queues loaded count=', q.length);
+        console.debug('[SendWhatsappSidePanel] Auto fallback queues loaded', {
+          rawCount: q.length,
+          filteredCount: filtered.length,
+        });
         // Se nenhuma fila selecionada ainda e veio algo, pré-seleciona primeira
-        if (!queueSid && q.length > 0) {
-          setQueueSid(q[0].sid);
+        if (!queueSid && filtered.length > 0) {
+          setQueueSid(filtered[0].sid);
         }
       });
     }, 2000); // 2s de espera para dar chance ao realtime
     return () => clearTimeout(timer);
-  }, [isOpen, queueOptions, fallbackTriggered, queueSid]);
+  }, [isOpen, queueOptions, fallbackTriggered, queueSid, applyQueueFilter]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    if (queueSid) return;
+    const candidate = filteredRealtimeQueues[0] || filteredFallbackQueues[0];
+    if (candidate?.sid) {
+      setQueueSid(candidate.sid);
+    }
+  }, [isOpen, queueSid, filteredRealtimeQueues, filteredFallbackQueues]);
 
   // Validação básica de número internacional
   const isToNumberValid = (() => {
@@ -229,15 +301,15 @@ export const SendWhatsappSidePanel: React.FC<SendWhatsappSidePanelProps> = ({
           </Option>
         )}
         <Option value="">{queuesLoading ? 'Aguardando filas...' : 'Sem fila (usar padrão)'}</Option>
-        {(queueOptions.length ? queueOptions : fallbackQueues).map(q => {
+        {(filteredRealtimeQueues.length ? filteredRealtimeQueues : filteredFallbackQueues).map(q => {
           const label = q.friendlyName || q.queueName || q.sid;
           return <Option key={q.sid} value={q.sid}>{label}</Option>;
         })}
       </Select>
       <HelpText>
         {queuesLoading && 'Consultando filas em tempo real...'}
-        {queuesEmptyAfterLoad && !fallbackQueues.length && (fallbackLoading ? 'Nenhuma fila realtime. Buscando fallback...' : 'Nenhuma fila realtime (sem resultado fallback).')}
-        {!queuesLoading && queueOptions.length > 0 && 'Se selecionada, a tarefa outbound será roteada por esta fila.'}
+        {queuesEmptyAfterLoad && !filteredFallbackQueues.length && (fallbackLoading ? 'Nenhuma fila realtime. Buscando fallback...' : filtersActive ? 'Nenhuma fila compatível com este contato.' : 'Nenhuma fila realtime (sem resultado fallback).')}
+        {!queuesLoading && filteredRealtimeQueues.length > 0 && 'Se selecionada, a tarefa outbound será roteada por esta fila.'}
       </HelpText>
       <Box marginTop="space30" display="flex" columnGap="space30">
         <Button variant="secondary" size="small" onClick={handleRefreshQueues} disabled={queuesLoading}>

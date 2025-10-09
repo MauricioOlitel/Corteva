@@ -91,6 +91,23 @@ const DirectoryTab = ({ shared, allowEdits, pageSize: initialPageSize }: OwnProp
     fetchContentTemplates().then((templates) => { console.log('Templates', templates); setWhatsappTemplates(templates || []); });
   }, []); // só uma vez na montagem
 
+  const queueFilterSids = useMemo(() => {
+    if (!panelContact) {
+      return [] as string[];
+    }
+    const values = new Set<string>();
+    const add = (value?: string) => {
+      if (!value) return;
+      const trimmed = String(value).trim();
+      if (trimmed) {
+        values.add(trimmed);
+      }
+    };
+    add(panelContact.filaSeedsTwilio);
+    add(panelContact.filaCropTwilio);
+    return Array.from(values);
+  }, [panelContact]);
+
   const setupPage = (contacts: Contact[]) => {
     const newTotalPages = Math.ceil(contacts.length / pageSize);
     const newStartIndex = (currentPage - 1) * pageSize;
@@ -421,7 +438,13 @@ const DirectoryTab = ({ shared, allowEdits, pageSize: initialPageSize }: OwnProp
     <ContactDetailModal contact={selectedContact} isOpen={showDetailModal} onClose={closeDetailModal} />
     <ContactEditModal contact={contactToEdit} isOpen={editModalOpen} shared={shared} handleClose={closeEditModal} />
     <SendWhatsappModal isOpen={!!whatsappModalContact} phoneNumber={whatsappModalContact?.phoneNumber ?? ""} message="" onClose={() => setWhatsappModalContact(null)} />
-    <SendWhatsappSidePanel isOpen={showWhatsappPanel} templates={whatsappTemplates} phoneNumber={panelContact?.phoneNumber ?? ""} onClose={() => setShowWhatsappPanel(false)} />
+    <SendWhatsappSidePanel
+      isOpen={showWhatsappPanel}
+      templates={whatsappTemplates}
+      phoneNumber={panelContact?.phoneNumber ?? ""}
+      queueFilterSids={queueFilterSids}
+      onClose={() => setShowWhatsappPanel(false)}
+    />
   </>
 );
   
