@@ -15,7 +15,7 @@ import { AgentIcon } from '@twilio-paste/icons/esm/AgentIcon';
 import { CallIcon } from '@twilio-paste/icons/esm/CallIcon';
 
 import { CustomWorkerAttributes } from '../../../types/task-router/Worker';
-import { StringTemplates } from '../flex-hooks/strings';
+import { StringTemplates } from '../flex-hooks/strings/strings';
 
 interface Props {
   phoneNumber: string;

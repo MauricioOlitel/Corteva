@@ -5,7 +5,7 @@ import { Box } from '@twilio-paste/core/box';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@twilio-paste/core/tabs';
 import { useUID } from '@twilio-paste/core/uid-library';
 
-import { StringTemplates } from '../flex-hooks/strings';
+import { StringTemplates } from '../flex-hooks/strings/strings';
 import RecentTab from './RecentTab/RecentTab';
 import DirectoryTab from './DirectoryTab/DirectoryTab';
 import { isRecentsEnabled, isPersonalDirectoryEnabled, isSharedDirectoryEnabled, getPageSize } from '../config';

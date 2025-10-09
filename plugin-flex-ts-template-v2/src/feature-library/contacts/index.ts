@@ -1,9 +1,11 @@
 import { FeatureDefinition } from '../../types/feature-loader';
 import { isFeatureEnabled } from './config';
 // @ts-ignore
-import hooks from './flex-hooks/**/*.*';
+const requireHook = require.context('./flex-hooks', true, /\.[jt]sx?$/);
+
+const hooks = requireHook.keys().map(requireHook);
 
 export const register = (): FeatureDefinition => {
   if (!isFeatureEnabled()) return {};
-  return { name: 'contacts', hooks: typeof hooks === 'undefined' ? [] : hooks };
+  return { name: 'contacts', hooks };
 };

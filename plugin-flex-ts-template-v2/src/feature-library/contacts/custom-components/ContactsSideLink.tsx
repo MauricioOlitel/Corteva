@@ -1,7 +1,7 @@
 import React from 'react';
 import { SideLink, Actions, Manager } from '@twilio/flex-ui';
 
-import { StringTemplates } from '../flex-hooks/strings';
+import { StringTemplates } from '../flex-hooks/strings/strings';
 
 interface OwnProps {
   activeView?: string;

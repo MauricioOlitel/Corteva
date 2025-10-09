@@ -1,7 +1,7 @@
 import { templates, Template } from '@twilio/flex-ui';
 import { Pagination, PaginationItems, PaginationArrow, PaginationLabel } from '@twilio-paste/core/pagination';
 
-import { StringTemplates } from '../flex-hooks/strings';
+import { StringTemplates } from '../flex-hooks/strings/strings';
 
 export interface OwnProps {
   currentPage: number;

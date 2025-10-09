@@ -5,29 +5,49 @@ import { DeleteIcon } from '@twilio-paste/icons/esm/DeleteIcon';
 import { EditIcon } from '@twilio-paste/icons/esm/EditIcon';
 import { DataGridRow, DataGridCell } from '@twilio-paste/core/data-grid';
 
-import { StringTemplates } from '../../flex-hooks/strings';
-import { Contact } from '../../types';
+import { StringTemplates } from '../../flex-hooks/strings/strings';
+import { Contact } from '../../types/types';
 import NotesPopover from '../NotesPopover';
 import OutboundCallModal from '../OutboundCallModal';
 
-export interface OwnProps {
+export interface ContactRecordProps {
   contact: Contact;
   allowEdits: boolean;
   deleteContact: (contact: Contact) => void;
   editContact: (contact: Contact) => void;
+  onNameClick?: (contact: Contact) => void; 
+  renderWhatsappButton?: () => React.ReactNode;
 }
 
-const ContactRecord = ({ contact, allowEdits, deleteContact, editContact }: OwnProps) => {
-  const { key, phoneNumber, name, notes } = contact;
-
-  return (
-    <DataGridRow key={key}>
-      <DataGridCell element="CONTACTS_TABLE_CELL">{name}</DataGridCell>
-      <DataGridCell element="CONTACTS_TABLE_CELL">{phoneNumber}</DataGridCell>
+const ContactRecord: React.FC<ContactRecordProps> = ({
+  contact,
+  allowEdits,
+  editContact,
+  deleteContact,
+  onNameClick,
+  renderWhatsappButton,
+}) => (
+    <DataGridRow key={contact.key}>
+      <DataGridCell>
+        <Button
+          variant="link"
+          onClick={() => onNameClick?.(contact)}
+          style={{ padding: 0, fontWeight: 600 }}
+        >
+          {contact.name}
+        </Button>
+      </DataGridCell>
+      <DataGridCell element="CONTACTS_TABLE_CELL">{contact.phoneNumber}</DataGridCell>
       <DataGridCell element="CONTACTS_TABLE_CELL" textAlign="right">
         <Flex vAlignContent="center" hAlignContent="right">
-          {notes && <NotesPopover notes={notes} />}
-          <OutboundCallModal phoneNumber={phoneNumber || ''} />
+          {/* Botão de WhatsApp */}
+          {renderWhatsappButton && renderWhatsappButton()}
+
+          {/* Notas, ligação, etc */}
+          {contact.notes && <NotesPopover notes={contact.notes} />}
+          <OutboundCallModal phoneNumber={contact.phoneNumber || ''} />
+
+          {/* Botões de editar/deletar */}
           {allowEdits && (
             <Flex marginLeft="space50">
               <Button
@@ -56,6 +76,5 @@ const ContactRecord = ({ contact, allowEdits, deleteContact, editContact }: OwnP
       </DataGridCell>
     </DataGridRow>
   );
-};
 
 export default ContactRecord;

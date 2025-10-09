@@ -1,7 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 
-import { Contact, HistoricalContact } from '../../types';
+import { Contact, HistoricalContact } from '../../types/types';
 
 export interface ContactsState {
   recents: HistoricalContact[];

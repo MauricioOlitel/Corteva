@@ -8,10 +8,10 @@ import { Combobox } from '@twilio-paste/core/combobox';
 import { Actions, IconButton, Template, templates } from '@twilio/flex-ui';
 
 import { PhoneNumberItem } from '../../../utils/serverless/PhoneNumbers/PhoneNumberService';
-import { Contact } from '../types';
+import { Contact } from '../types/types';
 import AppState from '../../../types/manager/AppState';
 import { reduxNamespace } from '../../../utils/state';
-import { StringTemplates } from '../flex-hooks/strings';
+import { StringTemplates } from '../flex-hooks/strings/strings';
 
 const OutboundContactSelector = () => {
   const myContactList = useSelector((state: AppState) => state[reduxNamespace].contacts.directory);
