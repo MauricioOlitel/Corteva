@@ -183,20 +183,33 @@ const DirectoryTab = ({ shared, allowEdits, pageSize: initialPageSize }: OwnProp
     // Processa em background (sem bloquear a confirmação)
     (async () => {
       let importados = 0;
+      let atualizados = 0;
       let erros = 0;
       for (const contato of contatosParaImportar) {
         try {
-          await ContactsUtil.addContactFull(contato, true);
-          importados++;
+          const existingContact = contato.phoneNumber 
+            ? await ContactsUtil.findContactByPhone(contato.phoneNumber, true)
+            : undefined;
+          
+          if (existingContact) {
+            // Update: mantém a key original
+            contato.key = existingContact.key;
+            await ContactsUtil.updateContact(contato, true);
+            atualizados++;
+          } else {
+            // Insert: cria novo contato
+            await ContactsUtil.addContactFull(contato, true);
+            importados++;
+          }
         } catch (e) {
           erros++;
           console.error('Erro ao importar contato', contato, e);
         }
       }
       if (erros === 0) {
-        alert(`${importados} contatos importados com sucesso!`);
+        alert(`Importação concluída! ${importados} novos contatos criados, ${atualizados} contatos atualizados.`);
       } else {
-        alert(`Importação concluída: ${importados} contatos importados com sucesso. ${erros} falhas. Consulte o console para detalhes.`);
+        alert(`Importação concluída: ${importados} novos, ${atualizados} atualizados. ${erros} falhas. Consulte o console para detalhes.`);
       }
     })();
   };
