@@ -1,4 +1,5 @@
 import './actions/sendOutboundMessage';
+import './actions/sendWhatsappToQueue';
 import registerNotifications from './utils/notifications';
 import { Manager } from '@twilio/flex-ui';
 import { FeatureDefinition } from '../../types/feature-loader';

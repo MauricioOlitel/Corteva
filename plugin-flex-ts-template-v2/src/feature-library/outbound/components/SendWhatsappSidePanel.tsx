@@ -205,14 +205,15 @@ export const SendWhatsappSidePanel: React.FC<SendWhatsappSidePanelProps> = ({
         normalizedNumber = "+" + normalizedNumber.replace(/^0+/, "");
       }
 
-      await Actions.invokeAction("SendOutboundMessage", {
-        destination: `whatsapp:${normalizedNumber}`,
+      // Usa a nova action que suporta roteamento por fila
+      await Actions.invokeAction("SendWhatsappToQueue", {
+        destination: normalizedNumber,
         callerId: `whatsapp:${process.env.FLEX_APP_TWILIO_WHATSAPP_FROM_NUMBER}`,
         contentTemplateSid,
-        messageType: "whatsapp",
-        openChat: true,
-        routeToMe: true,
-  queueSid: queueSid || undefined
+        queueSid: queueSid,
+        openChat: true, // Cria tarefa imediatamente
+        priority: 0,
+        timeout: 86400, // 24 horas
       });
 
       onClose();
