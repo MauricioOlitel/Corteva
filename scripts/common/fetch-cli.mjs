@@ -35,7 +35,15 @@ const execTwilioCli = (command) => {
     throw new Error(`Failed to execute Twilio CLI command. Did you provide valid credentials? Error: ${outputRaw.stderr}`);
   }
   
-  if (!outputRaw.stdout) {
+  // Log warnings if present, but don't treat them as errors
+  if (outputRaw.stderr && outputRaw.stderr.trim()) {
+    // Only log if it's not just a CLI update warning
+    if (!outputRaw.stderr.includes('Warning: twilio-cli update available')) {
+      console.warn('Twilio CLI stderr:', outputRaw.stderr);
+    }
+  }
+  
+  if (!outputRaw.stdout || !outputRaw.stdout.trim()) {
     // No results
     return [];
   }
@@ -46,7 +54,8 @@ const execTwilioCli = (command) => {
     return outputParsed;
   } catch (error) {
     console.error("Failed to parse Twilio CLI output", error);
-    return null;
+    console.error("Raw stdout:", outputRaw.stdout);
+    return [];
   }
 }
 
@@ -83,7 +92,7 @@ const fetchResources = (type, displayType, command, handler, parent) => {
   let wantedResources = filterWantedVars(type, parent);
   const fetchedResources = execTwilioCli(command);
   
-  if (!fetchedResources || fetchedResources.length < 1) {
+  if (!fetchedResources || !Array.isArray(fetchedResources) || fetchedResources.length < 1) {
     console.error(`No ${displayType} found. Is this a Flex account?`);
     return;
   }
