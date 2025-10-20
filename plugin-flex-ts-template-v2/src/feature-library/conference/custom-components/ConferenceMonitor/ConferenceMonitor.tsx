@@ -152,9 +152,10 @@ class ConferenceMonitor extends React.Component {
 
     if (doWorkaround) {
       await Actions.invokeAction('UnholdParticipant', {
+        sid: task.taskSid,
+        targetSid: participant.callSid,
         participantType: participant.participantType,
         task,
-        targetSid: participant.callSid,
       });
     }
 
@@ -162,9 +163,10 @@ class ConferenceMonitor extends React.Component {
 
     if (doWorkaround) {
       await Actions.invokeAction('HoldParticipant', {
+        sid: task.taskSid,
+        targetSid: participant.callSid,
         participantType: participant.participantType,
         task,
-        targetSid: participant.callSid,
       });
     }
   };

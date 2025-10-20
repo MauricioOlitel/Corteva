@@ -101,15 +101,16 @@ const ParticipantActionsButtons = (props: OwnProps) => {
   const onHoldParticipantClick = () => {
     const { participant, task } = props;
 
-    if (!participant) return;
+    if (!participant || !task) return;
 
     const { callSid, workerSid } = participant;
     const { participantType } = participant;
 
     Actions.invokeAction(participant.onHold ? 'UnholdParticipant' : 'HoldParticipant', {
+      sid: task.taskSid,
+      targetSid: participantType === 'worker' ? workerSid : callSid,
       participantType,
       task,
-      targetSid: participantType === 'worker' ? workerSid : callSid,
     });
   };
 

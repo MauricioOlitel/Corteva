@@ -87,9 +87,10 @@ const holdOtherCalls = (ignoreCallSid: string) => {
         task.conference.participants.forEach((p: ConferenceParticipant) => {
           if (!p.isCurrentWorker && p.status === 'joined') {
             Actions.invokeAction('HoldParticipant', {
+              sid: task.taskSid,
+              targetSid: p.participantType === 'worker' ? p.workerSid : p.callSid,
               participantType: p.participantType,
               task,
-              targetSid: p.participantType === 'worker' ? p.workerSid : p.callSid,
             });
           }
         });
