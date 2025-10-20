@@ -62,7 +62,10 @@ jobs:
       - name: setup node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20.18.1'
+          cache: 'npm'
+      - name: Update Yarn
+        run: npm install -g yarn@1.22.22
       - name: set github environment variables
         env:
           SECRETS_CONTEXT: ${{ toJson(secrets) }}
@@ -93,7 +96,7 @@ jobs:
       - name: setup node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20.18.1'
       - name: set github environment variables
         env:
           SECRETS_CONTEXT: ${{ toJson(secrets) }}
@@ -150,7 +153,7 @@ jobs:
       - name: setup node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20.18.1'
       - name: set github environment variables
         env:
           SECRETS_CONTEXT: ${{ toJson(secrets) }}
@@ -191,7 +194,7 @@ jobs:
       - name: setup node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20.18.1'
       - name: set github environment variables
         env:
           SECRETS_CONTEXT: ${{ toJson(secrets) }}
@@ -210,33 +213,56 @@ jobs:
         run: |
           npm run deploy >> $GITHUB_STEP_SUMMARY
 
+  
   deploy-release-plugin:
     needs:
       - validate-environment
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     env:
+      CI: true
+      FLEX_PLUGIN_ALLOW_SKIP_VALIDATION: true
       TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
       TWILIO_API_KEY: ${{ secrets.TWILIO_API_KEY }}
       TWILIO_API_SECRET: ${{ secrets.TWILIO_API_SECRET }}
       PLUGIN_FOLDER: plugin-flex-ts-template-v2
+      FLEX_APP_TWILIO_SERVERLESS_DOMAIN: ${{ secrets.FLEX_APP_TWILIO_SERVERLESS_DOMAIN }}
+      FLEX_APP_WORKSPACE_SID: ${{ secrets.FLEX_APP_WORKSPACE_SID }}
+      FLEX_APP_WORKFLOW_SID: ${{ secrets.FLEX_APP_WORKFLOW_SID }}
+      FLEX_APP_QUEUE_SID: ${{ secrets.FLEX_APP_QUEUE_SID }}
+      FLEX_APP_INBOUND_STUDIO_FLOW: ${{ secrets.FLEX_APP_INBOUND_STUDIO_FLOW }}
+      FLEX_APP_TWILIO_FROM_NUMBER: ${{ secrets.FLEX_APP_TWILIO_FROM_NUMBER }}
+      FLEX_APP_TWILIO_WHATSAPP_FROM_NUMBER: ${{ secrets.FLEX_APP_TWILIO_WHATSAPP_FROM_NUMBER }}
+      FLEX_APP_USE_CONTENT_TEMPLATES: ${{ secrets.FLEX_APP_USE_CONTENT_TEMPLATES }}
     steps:
       - uses: actions/checkout@v4
-      - name: setup node.js
+
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20.18.1'
 
-      - name: install twilio cli
-        run: npm install --ignore-scripts
+      - name: Update Yarn
+        run: npm install -g yarn@1.22.22
 
-      - name: deploy and release flex-plugin
+      - name: Install Twilio CLI
+        run: npm install -g twilio-cli@latest
+
+      - name: Install Flex Plugin for Twilio CLI
+        run: twilio plugins:install @twilio-labs/plugin-flex@latest
+
+      - name: Upgrade Flex Plugin for v7
+        run: twilio flex:plugins:upgrade-plugin --install --yes
+
+      - name: Deploy and Release Flex Plugin
         run: |
           echo "### Job summary" >> $GITHUB_STEP_SUMMARY
           echo " - Environment: ${{ inputs.environment }}"  >> $GITHUB_STEP_SUMMARY
           echo " - Plugin Folder: ${{ env.PLUGIN_FOLDER }}"  >> $GITHUB_STEP_SUMMARY
           cd $PLUGIN_FOLDER
           npm install
-          npm run install-flex-plugin
-          npm run deploy -- --changelog="Deploy from CI/CD for commit ${{ github.sha }}"
-          npm run release -- --name="Release from CI/CD for commit ${{ github.sha }}" --description="Release from CI/CD for commit ${{ github.sha }}"
+          twilio flex:plugins:deploy --changelog="Deploy from CI/CD for commit ${{ github.sha }}"
+          twilio flex:plugins:release \
+            --enable-plugin plugin-flex-ts-template-v2@latest \
+            --name="Release from CI/CD for commit ${{ github.sha }}" \
+            --description="Release from CI/CD for commit ${{ github.sha }}"
