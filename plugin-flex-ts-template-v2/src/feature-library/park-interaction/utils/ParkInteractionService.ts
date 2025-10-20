@@ -12,7 +12,7 @@ export interface ParkedInteraction {
   interactionSid: string;
   participantSid: string;
   conversationSid: string;
-  channelType: string;
+  conversationType: string; // Changed from channelType (Flex UI 2.x migration)
   taskSid: string;
   workflowSid: string;
   taskChannelUniqueName: string;
@@ -43,7 +43,7 @@ class ParkInteractionService extends ApiService {
     interactionSid: string,
     participantSid: string,
     conversationSid: string,
-    channelType: string,
+    conversationType: string, // Changed from channelType (Flex UI 2.x migration)
     taskSid: string,
     workflowSid: string,
     taskChannelUniqueName: string,
@@ -56,7 +56,7 @@ class ParkInteractionService extends ApiService {
       interactionSid: encodeURIComponent(interactionSid),
       participantSid: encodeURIComponent(participantSid),
       conversationSid: encodeURIComponent(conversationSid),
-      channelType: encodeURIComponent(channelType),
+      conversationType: encodeURIComponent(conversationType),
       taskSid: encodeURIComponent(taskSid),
       workflowSid: encodeURIComponent(workflowSid),
       taskChannelUniqueName: encodeURIComponent(taskChannelUniqueName),

@@ -187,3 +187,6 @@ terraform.rc
 # Ignore local env(s), allowing only the example env
 .env.*
 !.env.example
+scripts/check-github-secrets.sh
+.gitignore
+.gitignore

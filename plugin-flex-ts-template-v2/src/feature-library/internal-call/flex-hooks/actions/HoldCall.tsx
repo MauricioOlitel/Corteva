@@ -19,7 +19,12 @@ export const actionHook = function handleInternalHoldCall(flex: typeof Flex, _ma
       ? task.attributes.conference.participants.worker
       : task.attributes.worker_call_sid;
 
-    await ProgrammableVoiceService.holdParticipant(conference, participant);
+    // Use Flex Actions API instead of direct service call (Flex UI 2.x)
+    await flex.Actions.invokeAction('HoldParticipant', {
+      sid: conference,
+      targetSid: participant,
+      task,
+    });
     abortFunction();
   });
 };

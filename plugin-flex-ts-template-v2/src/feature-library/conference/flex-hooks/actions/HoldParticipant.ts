@@ -10,16 +10,15 @@ export const actionName = FlexAction.HoldParticipant;
 export const actionHook = function handleHoldConferenceParticipant(flex: typeof Flex, _manager: Flex.Manager) {
   if (!isConferenceEnabledWithoutNativeXWT()) return;
 
-  flex.Actions.addListener(`${actionEvent}${actionName}`, async (payload, abortFunction) => {
-    const { participantType, targetSid: participantSid, task } = payload;
+  flex.Actions.addListener(`${actionEvent}${actionName}`, async (payload) => {
+    const { participantType, targetSid: participantSid } = payload;
 
     if (participantType !== 'unknown') {
       return;
     }
 
-    const conferenceSid = task.conference?.conferenceSid || task.attributes?.conference?.sid;
-    abortFunction();
-    logger.info(`[conference] Holding participant ${participantSid}`);
-    await ProgrammableVoiceService.holdParticipant(conferenceSid, participantSid);
+    // Let Flex handle the hold action natively (Flex UI 2.x)
+    // Do not abort or call service directly - Flex Actions API handles this
+    logger.info(`[conference] Holding participant ${participantSid} via Flex Actions`);
   });
 };

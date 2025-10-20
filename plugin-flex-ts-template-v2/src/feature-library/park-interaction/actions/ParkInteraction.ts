@@ -1,4 +1,4 @@
-import { TaskHelper, Notifications, templates, Manager } from '@twilio/flex-ui';
+import { TaskHelper, Notifications, templates, Manager, ConversationHelper, StateHelper } from '@twilio/flex-ui';
 
 import { ParkInteractionNotification, UnparkInteractionNotification } from '../flex-hooks/notifications';
 import { StringTemplates } from '../flex-hooks/strings';
@@ -29,13 +29,21 @@ export const parkInteraction = async (payload: ParkInteractionPayload) => {
 
   try {
     const agent = await getAgent(payload);
+    
+    // Get conversation type using ConversationHelper (Flex UI 2.x)
+    const conversationState = StateHelper.getConversationStateForTask(payload.task);
+    if (!conversationState) {
+      throw new Error('Conversation state not found');
+    }
+    const conversationHelper = new ConversationHelper(conversationState);
+    const conversationType = conversationHelper.conversationType || 'unknown';
 
     await ParkInteractionService.parkInteraction(
       agent.channelSid,
       agent.interactionSid,
       agent.participantSid,
       agent.mediaProperties.conversationSid,
-      agent.channelType,
+      conversationType,
       payload.task.taskSid,
       payload.task.workflowSid,
       payload.task.taskChannelUniqueName,

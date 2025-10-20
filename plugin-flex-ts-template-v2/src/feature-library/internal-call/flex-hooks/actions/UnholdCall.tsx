@@ -19,7 +19,12 @@ export const actionHook = function handleInternalUnholdCall(flex: typeof Flex, _
       ? task.attributes.conference.participants.worker
       : task.attributes.worker_call_sid;
 
-    await ProgrammableVoiceService.unholdParticipant(conference, participant);
+    // Use Flex Actions API instead of direct service call (Flex UI 2.x)
+    await flex.Actions.invokeAction('UnholdParticipant', {
+      sid: conference,
+      targetSid: participant,
+      task,
+    });
     abortFunction();
   });
 };

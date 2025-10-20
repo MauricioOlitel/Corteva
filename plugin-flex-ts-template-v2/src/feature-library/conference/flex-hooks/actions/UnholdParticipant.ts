@@ -10,17 +10,15 @@ export const actionName = FlexAction.UnholdParticipant;
 export const actionHook = function handleUnholdConferenceParticipant(flex: typeof Flex, _manager: Flex.Manager) {
   if (!isConferenceEnabledWithoutNativeXWT()) return;
 
-  flex.Actions.addListener(`${actionEvent}${actionName}`, async (payload, abortFunction) => {
-    const { participantType, targetSid: participantSid, task } = payload;
+  flex.Actions.addListener(`${actionEvent}${actionName}`, async (payload) => {
+    const { participantType, targetSid: participantSid } = payload;
 
     if (participantType !== 'unknown') {
       return;
     }
 
-    logger.info(`[conference] Unholding participant ${participantSid}`);
-
-    const conferenceSid = task.conference?.conferenceSid || task.attributes?.conference?.sid;
-    abortFunction();
-    await ProgrammableVoiceService.unholdParticipant(conferenceSid, participantSid);
+    // Let Flex handle the unhold action natively (Flex UI 2.x)
+    // Do not abort or call service directly - Flex Actions API handles this
+    logger.info(`[conference] Unholding participant ${participantSid} via Flex Actions`);
   });
 };

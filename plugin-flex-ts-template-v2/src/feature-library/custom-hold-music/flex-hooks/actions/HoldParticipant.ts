@@ -8,27 +8,25 @@ import logger from '../../../../utils/logger';
 export const actionEvent = FlexActionEvent.before;
 export const actionName = FlexAction.HoldParticipant;
 export const actionHook = function setHoldMusicBeforeHoldParticipant(flex: typeof Flex, _manager: Flex.Manager) {
-  flex.Actions.addListener(`${actionEvent}${actionName}`, async (payload, abortFunction) => {
+  flex.Actions.addListener(`${actionEvent}${actionName}`, async (payload) => {
+    // Set custom hold music URL
     payload.holdMusicUrl = getHoldMusicUrl();
 
     if (!payload.targetSid || !payload.task) {
       return;
     }
 
-    // Override hold handling for participants from the native XWT functionality due to Flex ignoring payload.holdMusicUrl: SEFLEX-3875
     // Find the full participant object based on the targetSid
     const participant = payload?.task?.conference?.participants?.find(
       (p: any) => payload.targetSid === (payload.targetSid.startsWith('UT') ? p.participantSid : p.callSid),
     );
 
-    // Only Native XWT participants are of the 'external' type, ignore if this participant is something else
+    // Only Native XWT participants are of the 'external' type
     if (!participant || participant.participantType !== 'external') {
       return;
     }
 
-    const conferenceSid = payload.task.conference?.conferenceSid || payload.task.attributes?.conference?.sid;
-    abortFunction();
-    logger.info(`[custom-hold-music] Holding participant ${participant.callSid}`);
-    await ProgrammableVoiceService.holdParticipant(conferenceSid, participant.callSid);
+    // Let Flex Actions API handle the hold operation with custom hold music (Flex UI 2.x)
+    logger.info(`[custom-hold-music] Holding participant ${participant.callSid} with custom music`);
   });
 };
