@@ -62,9 +62,29 @@ exports.handler = TokenValidator(async function (context, event, callback) {
       throw new Error('Must provide either contentTemplateSid or body');
     }
 
-    // Normalize phone numbers to E.164 format
-    const toNumber = to.startsWith('whatsapp:') ? to : `whatsapp:${to.replace(/\D/g, '')}`;
-    const fromNumber = from.startsWith('whatsapp:') ? from : `whatsapp:${from}`;
+    // Normalize phone numbers to E.164 format with whatsapp: prefix
+    // Ensure we keep the + sign for E.164 format
+    let toNumber = to.trim();
+    if (!toNumber.startsWith('whatsapp:')) {
+      // Remove all non-digit characters except +
+      toNumber = toNumber.replace(/[^\d+]/g, '');
+      // Ensure it starts with +
+      if (!toNumber.startsWith('+')) {
+        toNumber = '+' + toNumber;
+      }
+      toNumber = `whatsapp:${toNumber}`;
+    }
+
+    let fromNumber = from.trim();
+    if (!fromNumber.startsWith('whatsapp:')) {
+      // Remove all non-digit characters except +
+      fromNumber = fromNumber.replace(/[^\d+]/g, '');
+      // Ensure it starts with +
+      if (!fromNumber.startsWith('+')) {
+        fromNumber = '+' + fromNumber;
+      }
+      fromNumber = `whatsapp:${fromNumber}`;
+    }
 
     console.log('Creating WhatsApp conversation', {
       to: toNumber,
