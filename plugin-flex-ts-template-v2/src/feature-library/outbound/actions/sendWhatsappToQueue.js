@@ -114,7 +114,7 @@ const sendWhatsappToQueue = async (params) => {
 
   try {
     const domain = resolveServerlessDomain();
-    const url = `${domain}/features/outbound-messaging/send-whatsapp-message`;
+    const url = `${domain}/send-whatsapp-message`;
     
     const token = requestBody.Token || '';
     const tokenPreview = token ? `${token.substring(0, 6)}...${token.substring(token.length - 4)}` : 'n/a';
