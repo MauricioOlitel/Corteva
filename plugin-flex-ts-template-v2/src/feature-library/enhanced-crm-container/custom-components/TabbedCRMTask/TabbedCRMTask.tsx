@@ -47,10 +47,16 @@ export const TabbedCRMTask = ({ thisTask, task }: Props) => {
 
   useEffect(() => {
     Actions.addListener('afterLoadCRMContainerTabs', handleCustomComponent);
-    Actions.invokeAction('LoadCRMContainerTabs', {
-      task: thisTask,
-      components: [],
-    });
+    
+    // Try to invoke action, but catch error if not registered yet during initialization
+    try {
+      Actions.invokeAction('LoadCRMContainerTabs', {
+        task: thisTask,
+        components: [],
+      });
+    } catch (error) {
+      console.warn('[enhanced-crm-container] LoadCRMContainerTabs action not available yet:', error);
+    }
   }, []);
 
   return (

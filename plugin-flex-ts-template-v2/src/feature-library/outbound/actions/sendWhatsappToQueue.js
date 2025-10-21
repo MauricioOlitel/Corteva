@@ -180,27 +180,32 @@ const sendWhatsappToQueue = async (params) => {
  * - priority: Task priority (optional, default: 0)
  * - timeout: Task timeout in seconds (optional, default: 86400)
  */
-Actions.registerAction("SendWhatsappToQueue", async (payload) => {
-  console.log('[SendWhatsappToQueue] Action invoked', {
-    destination: payload.destination,
-    queueSid: payload.queueSid,
-    hasTemplate: !!payload.contentTemplateSid,
-    hasBody: !!payload.body,
-    openChat: payload.openChat,
-  });
+try {
+  Actions.registerAction("SendWhatsappToQueue", async (payload) => {
+    console.log('[SendWhatsappToQueue] Action invoked', {
+      destination: payload.destination,
+      queueSid: payload.queueSid,
+      hasTemplate: !!payload.contentTemplateSid,
+      hasBody: !!payload.body,
+      openChat: payload.openChat,
+    });
 
-  const result = await sendWhatsappToQueue({
-    to: payload.destination,
-    from: payload.callerId,
-    queueSid: payload.queueSid,
-    contentTemplateSid: payload.contentTemplateSid,
-    body: payload.body,
-    openChatFlag: payload.openChat !== false, // default true
-    priority: payload.priority || 0,
-    timeout: payload.timeout || 86400,
-  });
+    const result = await sendWhatsappToQueue({
+      to: payload.destination,
+      from: payload.callerId,
+      queueSid: payload.queueSid,
+      contentTemplateSid: payload.contentTemplateSid,
+      body: payload.body,
+      openChatFlag: payload.openChat !== false, // default true
+      priority: payload.priority || 0,
+      timeout: payload.timeout || 86400,
+    });
 
-  return result;
-});
+    return result;
+  });
+} catch (error) {
+  // Action already registered by another plugin
+  console.warn('[outbound] SendWhatsappToQueue action already registered, skipping');
+}
 
 export default sendWhatsappToQueue;

@@ -88,12 +88,13 @@ const sendOutboundMessage = async (sendOutboundParams) => {
 
 // TODO - fallback and try and use outbound calling setup sids
 // TODO - allow override of queue from action payload
-Actions.registerAction("SendOutboundMessage", (payload) => {
-  if (!payload.callerId)
-    payload.callerId = process.env.FLEX_APP_TWILIO_FROM_NUMBER;
+try {
+  Actions.registerAction("SendOutboundMessage", (payload) => {
+    if (!payload.callerId)
+      payload.callerId = process.env.FLEX_APP_TWILIO_FROM_NUMBER;
 
-  if (payload.openChat) {
-    // create a task immediately
+    if (payload.openChat) {
+      // create a task immediately
     const sendOutboundParams = {
       OpenChatFlag: true,
       KnownAgentRoutingFlag: false,
@@ -127,4 +128,8 @@ Actions.registerAction("SendOutboundMessage", (payload) => {
     };
     sendOutboundMessage(sendOutboundParams);
   }
-});
+  });
+} catch (error) {
+  // Action already registered by another plugin (e.g., outbound-cbm)
+  console.warn('[outbound] SendOutboundMessage action already registered, skipping');
+}
