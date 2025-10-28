@@ -35,13 +35,15 @@ const resolveServerlessDomain = () => {
 };
 
 /**
- * Send WhatsApp message to a specific queue
- * @param {Object} params - Send parameters
+ * Send WhatsApp message with queue routing
+ * 
+ * @param {object} params - Parameters
  * @param {string} params.to - Destination phone number
  * @param {string} params.from - Twilio WhatsApp number
  * @param {string} params.queueSid - Queue SID to route the task
  * @param {string} [params.contentTemplateSid] - Content template SID
  * @param {string} [params.body] - Message body (if no template)
+ * @param {boolean} [params.assignDirectly] - Assign task directly to current agent
  * @param {boolean} [params.openChatFlag] - Create task immediately
  * @param {number} [params.priority] - Task priority
  * @param {number} [params.timeout] - Task timeout in seconds
@@ -53,6 +55,7 @@ const sendWhatsappToQueue = async (params) => {
     queueSid,
     contentTemplateSid,
     body,
+    assignDirectly = true,
     openChatFlag = true,
     priority = 0,
     timeout = 86400,
@@ -88,6 +91,7 @@ const sendWhatsappToQueue = async (params) => {
     to,
     from: from || process.env.FLEX_APP_TWILIO_FROM_NUMBER,
     queueSid,
+    assignDirectly: assignDirectly !== undefined ? assignDirectly.toString() : 'true', // Nova opção
     workerSid: manager.workerClient?.sid,
     workerFriendlyName: manager.user?.identity,
     workspaceSid: process.env.FLEX_APP_WORKSPACE_SID,

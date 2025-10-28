@@ -9,7 +9,8 @@ import {
   Box,
   Text,
   TextArea,
-  Button
+  Button,
+  Checkbox
 } from "@twilio-paste/core";
 import { PhoneNumberUtil, AsYouTypeFormatter } from "google-libphonenumber";
 import { Actions } from "@twilio/flex-ui";
@@ -34,6 +35,7 @@ export const SendWhatsappSidePanel: React.FC<SendWhatsappSidePanelProps> = ({
   const [contentTemplateSid, setContentTemplateSid] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [queueSid, setQueueSid] = useState("");
+  const [assignDirectly, setAssignDirectly] = useState(true); // Nova opção: atribuir direto ao agente
   const [queueFirstLoadTs] = useState(Date.now());
   const [queueManuallyRefreshed, setQueueManuallyRefreshed] = useState(false);
   const [fallbackQueues, setFallbackQueues] = useState<any[]>([]);
@@ -211,6 +213,7 @@ export const SendWhatsappSidePanel: React.FC<SendWhatsappSidePanelProps> = ({
         callerId: `whatsapp:${process.env.FLEX_APP_TWILIO_WHATSAPP_FROM_NUMBER}`,
         contentTemplateSid,
         queueSid: queueSid,
+        assignDirectly: assignDirectly, // Passa opção de atribuição direta
         openChat: true, // Cria tarefa imediatamente
         priority: 0,
         timeout: 86400, // 24 horas
@@ -317,6 +320,24 @@ export const SendWhatsappSidePanel: React.FC<SendWhatsappSidePanelProps> = ({
           Recarregar filas
         </Button>
       </Box>
+
+    <Separator orientation="horizontal" verticalSpacing="space60" />
+
+    {/* Opção de atribuição direta */}
+    <Checkbox
+      checked={assignDirectly}
+      onChange={(e) => setAssignDirectly(e.target.checked)}
+      id="assign_directly_checkbox"
+    >
+      Abrir conversa diretamente para mim
+    </Checkbox>
+    <Box marginTop="space30">
+      <HelpText>
+        Quando marcado, a conversa será aberta automaticamente para você. 
+        Caso contrário, entrará na fila selecionada e poderá ser atribuída a qualquer agente disponível.
+      </HelpText>
+    </Box>
+
     <Separator orientation="horizontal" verticalSpacing="space60" />
       </Box>
       {/* Rodapé */}

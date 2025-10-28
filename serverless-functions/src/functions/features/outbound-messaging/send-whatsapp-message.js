@@ -10,11 +10,12 @@
  * - queueSid: TaskRouter Queue SID to route the task (required)
  * - contentTemplateSid: (Optional) Content Template SID for WhatsApp approved templates
  * - body: (Optional) Message body for free-form messages (used if contentTemplateSid not provided)
+ * - assignDirectly: (Optional) Assign task directly to worker (default: true)
  * - workerSid: (Optional) Agent worker SID initiating the conversation
  * - workerFriendlyName: (Optional) Agent name for task attributes
  * - workspaceSid: (Optional) TaskRouter Workspace SID (defaults to env var)
  * - workflowSid: (Optional) TaskRouter Workflow SID (defaults to env var)
- * - priority: (Optional) Task priority (default: 0)
+ * - priority: (Optional) Task priority (default: 0, or 100 if assignDirectly=true)
  * - timeout: (Optional) Task timeout in seconds (default: 86400 - 24 hours)
  * - openChatFlag: (Optional) Create task immediately (true) or wait for customer reply (false, default)
  */
@@ -36,8 +37,9 @@ exports.handler = TokenValidator(async function (context, event, callback) {
     timeout,
   } = event;
 
-  let { openChatFlag } = event;
+  let { openChatFlag, assignDirectly } = event;
   openChatFlag = openChatFlag === 'true' ? true : false;
+  assignDirectly = assignDirectly === 'true' ? true : assignDirectly === 'false' ? false : true; // Default true
 
   const client = context.getTwilioClient();
 
@@ -227,11 +229,21 @@ exports.handler = TokenValidator(async function (context, event, callback) {
         taskAttributes.workerFriendlyName = workerFriendlyName;
       }
 
+      // Add targetWorker for direct assignment
+      let taskPriority = priority || 0;
+      if (assignDirectly && workerSid) {
+        taskAttributes.targetWorker = workerSid;
+        taskPriority = 100; // Higher priority for direct assignment
+        console.log('Task will be assigned directly to worker:', workerSid);
+      } else {
+        console.log('Task will be routed to queue:', queueSid);
+      }
+
       task = await client.taskrouter.v1.workspaces(workspaceId).tasks.create({
         workflowSid: workflowId,
         taskChannel: 'chat',
         attributes: JSON.stringify(taskAttributes),
-        priority: priority || 0,
+        priority: taskPriority,
         timeout: timeout || 86400, // 24 hours default
         routingTarget: queueSid, // Route directly to specified queue
       });
